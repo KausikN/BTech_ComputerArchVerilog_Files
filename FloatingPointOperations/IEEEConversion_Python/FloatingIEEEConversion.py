@@ -83,8 +83,17 @@ class IEEEConverter:
         # Sign
         if (floatval <  0):
             ieeefloat.Sign = '1'
+            floatval = -floatval
         else:
             ieeefloat.Sign = '0'
+
+        exp_offset = 0
+
+        # If no itself is like 0.002 - i.e. whiole part is 0, make exponent offset
+        if (floatval < 1.0):
+            while(floatval < 1.0):
+                exp_offset += 1
+                floatval *= 2
 
         BinFloat = self.IntFloat2BinFloat(floatval, IEEEFloatingPrecision.Bits[precision][2] + 1)
         joinedVal = BinFloat[0] + BinFloat[1]
@@ -93,18 +102,30 @@ class IEEEConverter:
         ieeefloat.Mantissa = joinedVal[1:] # Remove implicit 1.
 
         # Exponent
-        expo = str(Int2Bin(len(BinFloat[0]) - 1 + 2**(IEEEFloatingPrecision.Bits[precision][1] - 1) - 1)) # Offset
+        expo = str(Int2Bin(len(BinFloat[0]) - 1 + 2**(IEEEFloatingPrecision.Bits[precision][1] - 1) - 1 - exp_offset)) # Offset
         if (len(expo) > IEEEFloatingPrecision.Bits[precision][1]):
             expo = expo[(len(expo) - IEEEFloatingPrecision.Bits[precision][1]):]
+        
         ieeefloat.Exponent = expo
 
         return ieeefloat
     
     def IEEE2Float(self, ieeefloat, precision='Half'):
+        # Sign
+        Sign = 1.0
+        if (ieeefloat.Sign ==  '1'):
+            Sign = -1.0
+        # Exponent
         exp = int(Bin2Int(int(ieeefloat.Exponent)) - (2**(IEEEFloatingPrecision.Bits[precision][1] - 1) - 1))
-        fstr = ('1' + ieeefloat.Mantissa)[:exp+1] + '.' + ('1' + ieeefloat.Mantissa)[exp+1:]
+        fstr = ''
+        if exp >= 0:
+            fstr = ('1' + ieeefloat.Mantissa)[:exp+1] + '.' + ('1' + ieeefloat.Mantissa)[exp+1:]
+        else:
+            offset = '0' * int(-1*(exp) - 1)
+            fstr = '0' + '.' + offset +  ('1' + ieeefloat.Mantissa)
         splitVals = fstr.split('.')
-        return float(Bin2Int(int(splitVals[0]))) + Bin2DecimalInt(splitVals[1])
+        floatval = float(Sign * Bin2Int(int(splitVals[0]))) + Sign * Bin2DecimalInt(splitVals[1])
+        return floatval
 
     
 
