@@ -1,11 +1,11 @@
-`include "FullAdder.v"
+//`include "FullAdder.v"
 
-module Bit10Adder (a, b, sum, carry);
+module Bit11Adder (a, b, sum, carry);
 
-input [10:1] a;
-input [10:1] b;
+input [11:1] a;
+input [11:1] b;
 
-output [10:1] sum;
+output [11:1] sum;
 output carry;
 
 wire [10:1] w;

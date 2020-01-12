@@ -6,6 +6,13 @@
 def GetFloatInput():
     return float(input("Enter Float Value: "))
 
+def GetIEEEInput():
+    ieeeform = IEEEFormat()
+    ieeeform.Sign = input("Enter Sign: ")
+    ieeeform.Exponent = input("Enter Exponent: ")
+    ieeeform.Mantissa = input("Enter Mantissa: ")
+    return ieeeform
+
 def SplitFloat(floatval):
     spl = str(floatval).split('.')
     return [int(spl[0]), int(spl[1])]
@@ -130,12 +137,37 @@ class IEEEConverter:
     
 
 e = IEEEConverter()
-iefloat = e.Float2IEEE(GetFloatInput(), 'Half')
-print("Sign:", iefloat.Sign)
-print("Exponent:", iefloat.Exponent, Bin2Int(int(iefloat.Exponent)))
-print("Mantissa:", iefloat.Mantissa, Bin2Int(int(iefloat.Mantissa)))
-originalValue = e.IEEE2Float(iefloat, 'Half')
-print('OG', originalValue)
+
+choice = input("Enter choice: ")
+
+if choice in ['', 'f']:
+    # Float to IEEE
+    iefloat = e.Float2IEEE(GetFloatInput(), 'Half')
+    print("Sign:", iefloat.Sign)
+    print("Exponent:", iefloat.Exponent, Bin2Int(int(iefloat.Exponent)))
+    print("Mantissa:", iefloat.Mantissa, Bin2Int(int(iefloat.Mantissa)))
+    originalValue = e.IEEE2Float(iefloat, 'Half')
+    print('OG', originalValue)
+
+elif choice in ['d2b']:
+    # Dec to Binary
+    decval = int(input("Enter Integer Value: "))
+    print("Bin: ", Int2Bin(decval))
+
+elif choice in ['b2d']:
+    # Binary to Dec
+    binval = int(input("Enter Binary Value: "))
+    print("Int: ", Bin2Int(binval))
+
+else: 
+    # IEEE to Float
+    floatv = e.IEEE2Float(GetIEEEInput(), 'Half')
+    print("Float Value:", floatv)
+    originalIEEE = e.Float2IEEE(floatv, 'Half')
+    print("Sign:", originalIEEE.Sign)
+    print("Exponent:", originalIEEE.Exponent, Bin2Int(int(originalIEEE.Exponent)))
+    print("Mantissa:", originalIEEE.Mantissa, Bin2Int(int(originalIEEE.Mantissa)))
+
 
         
 
