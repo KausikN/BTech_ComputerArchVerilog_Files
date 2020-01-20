@@ -13,7 +13,7 @@ initial begin
 end
 
 initial begin
-    b = 5'b10101; a = 5'b00101;
+    a = 5'b00011; b = 5'b01001;
 end
 
 endmodule

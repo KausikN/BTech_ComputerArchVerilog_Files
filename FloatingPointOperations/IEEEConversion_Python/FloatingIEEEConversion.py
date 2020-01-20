@@ -18,16 +18,18 @@ def SplitFloat(floatval):
     return [int(spl[0]), int(spl[1])]
 
 def Int2Bin(intval):
-    if (intval > 1):
-        return int((10*Int2Bin(intval/2)) + (intval%2))
+    intval_int = int(intval)
+    if (intval_int > 1):
+        return str((Int2Bin(str(int(intval_int/2)))) + str(intval_int%2))
     else:
-        return int(intval)
+        return str(intval)
 
 def Bin2Int(binval):
     decval = 0
     for i in range(len(str(binval))):
-        decval += int((2**i) * (binval%10))
-        binval = int(binval/10)
+        if binval[-1] == '1':
+            decval += int(2**i)
+        binval = binval[:-1]
     return decval
 
 def DecimalInt2Bin(decimalval, nbits=1):
@@ -76,7 +78,7 @@ class IEEEConverter:
         # Split the float value
         splitfloat = SplitFloat(floatval)
         # Convert to Binary
-        wholepart = Int2Bin(splitfloat[0])
+        wholepart = int(Int2Bin(str(splitfloat[0])))
         mantissaBits -= len(str(wholepart))
         if mantissaBits > 0:
             decimalpart = DecimalInt2Bin(splitfloat[1], mantissaBits)
@@ -109,7 +111,7 @@ class IEEEConverter:
         ieeefloat.Mantissa = joinedVal[1:] # Remove implicit 1.
 
         # Exponent
-        expo = str(Int2Bin(len(BinFloat[0]) - 1 + 2**(IEEEFloatingPrecision.Bits[precision][1] - 1) - 1 - exp_offset)) # Offset
+        expo = str(Int2Bin(str(len(BinFloat[0]) - 1 + 2**(IEEEFloatingPrecision.Bits[precision][1] - 1) - 1 - exp_offset))) # Offset
         if (len(expo) > IEEEFloatingPrecision.Bits[precision][1]):
             expo = expo[(len(expo) - IEEEFloatingPrecision.Bits[precision][1]):]
         
@@ -123,7 +125,7 @@ class IEEEConverter:
         if (ieeefloat.Sign ==  '1'):
             Sign = -1.0
         # Exponent
-        exp = int(Bin2Int(int(ieeefloat.Exponent)) - (2**(IEEEFloatingPrecision.Bits[precision][1] - 1) - 1))
+        exp = int(Bin2Int(str(int(ieeefloat.Exponent))) - (2**(IEEEFloatingPrecision.Bits[precision][1] - 1) - 1))
         fstr = ''
         if exp >= 0:
             fstr = ('1' + ieeefloat.Mantissa)[:exp+1] + '.' + ('1' + ieeefloat.Mantissa)[exp+1:]
@@ -131,7 +133,7 @@ class IEEEConverter:
             offset = '0' * int(-1*(exp) - 1)
             fstr = '0' + '.' + offset +  ('1' + ieeefloat.Mantissa)
         splitVals = fstr.split('.')
-        floatval = float(Sign * Bin2Int(int(splitVals[0]))) + Sign * Bin2DecimalInt(splitVals[1])
+        floatval = float(Sign * Bin2Int(str(int(splitVals[0])))) + Sign * Bin2DecimalInt(splitVals[1])
         return floatval
 
     
@@ -144,19 +146,19 @@ if choice in ['', 'f']:
     # Float to IEEE
     iefloat = e.Float2IEEE(GetFloatInput(), 'Half')
     print("Sign:", iefloat.Sign)
-    print("Exponent:", iefloat.Exponent, Bin2Int(int(iefloat.Exponent)))
-    print("Mantissa:", iefloat.Mantissa, Bin2Int(int(iefloat.Mantissa)))
+    print("Exponent:", iefloat.Exponent, Bin2Int(iefloat.Exponent))
+    print("Mantissa:", iefloat.Mantissa, Bin2Int(iefloat.Mantissa))
     originalValue = e.IEEE2Float(iefloat, 'Half')
     print('OG', originalValue)
 
 elif choice in ['d2b']:
     # Dec to Binary
-    decval = int(input("Enter Integer Value: "))
+    decval = input("Enter Integer Value: ")
     print("Bin: ", Int2Bin(decval))
 
 elif choice in ['b2d']:
     # Binary to Dec
-    binval = int(input("Enter Binary Value: "))
+    binval = input("Enter Binary Value: ")
     print("Int: ", Bin2Int(binval))
 
 else: 
@@ -165,8 +167,8 @@ else:
     print("Float Value:", floatv)
     originalIEEE = e.Float2IEEE(floatv, 'Half')
     print("Sign:", originalIEEE.Sign)
-    print("Exponent:", originalIEEE.Exponent, Bin2Int(int(originalIEEE.Exponent)))
-    print("Mantissa:", originalIEEE.Mantissa, Bin2Int(int(originalIEEE.Mantissa)))
+    print("Exponent:", originalIEEE.Exponent, Bin2Int(originalIEEE.Exponent))
+    print("Mantissa:", originalIEEE.Mantissa, Bin2Int(originalIEEE.Mantissa))
 
 
         
