@@ -42,11 +42,6 @@ assign reverse2scomp[5] = !onescomp[5];
 
 // Return correct diff value based on sign of it
 Bit5MUX mux (reverse2scomp, diff, !smallerOperand_ZeroChecked, Exponent_Diff);
-// assign Exponent_Diff[1] = ((!carry) & reverse2scomp[1]) | ((carry) & diff[1]);
-// assign Exponent_Diff[2] = ((!carry) & reverse2scomp[2]) | ((carry) & diff[2]);
-// assign Exponent_Diff[3] = ((!carry) & reverse2scomp[3]) | ((carry) & diff[3]);
-// assign Exponent_Diff[4] = ((!carry) & reverse2scomp[4]) | ((carry) & diff[4]);
-// assign Exponent_Diff[5] = ((!carry) & reverse2scomp[5]) | ((carry) & diff[5]);
 
 // Assign smallerOperand
 assign smallerOperand = smallerOperand_ZeroChecked;

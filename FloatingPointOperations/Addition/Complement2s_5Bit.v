@@ -1,4 +1,4 @@
-`include "Bit5Adder.v"
+`include "Bit5Adder_RD.v"
 
 module Complement2s_5Bit (a, b);
 input [5:1] a;

@@ -13,12 +13,16 @@ module FAdder_HalfPrecision(
     add, 
     in_Sign_1, in_Exponent_1, in_Mantissa_1, 
     in_Sign_2_BeforeSignAdjust, in_Exponent_2, in_Mantissa_2, 
-    out_Sign, out_Exponent, out_Mantissa
+    out_Sign, out_Exponent, out_Mantissa, 
+    SC_Output_OverFlow, SC_Exponent_UnderFlow
 );
 
 // Special Conditions
+wire SC_Operand_Infinity;   // For checking if any one of the input operands is Infinity
+wire SC_Operand_Zero;   // For checking if any one of the input operands is 0
 wire SC_Mantissa_Zero;  // For checking if Output no is 0.0
-wire SC_Exponent_UnderFlow; // For checking if Output no is denormalised - i.e. exponent of output underflows after renormalisation
+output SC_Output_OverFlow; // For checking if Output Exponent Overflows
+output SC_Exponent_UnderFlow; // For checking if Output no is denormalised - i.e. exponent of output underflows after renormalisation
 
 // Initial
 input add;  // If add = 1, do addition, else do subtraction
@@ -43,12 +47,15 @@ wire [5:1] Max_Exponent;
 
 ExpSubtractor expsub (in_Exponent_1, in_Exponent_2, Exponent_Diff, smallerOperand); // if smallerOperand = 1, in_Exponent_1 is smaller Operand
 
+wire largerOperand;
+assign largerOperand = !smallerOperand;
 // Based on smallerOperand decide which operand is larger or smaller
 wire largerOperand_Sign;
 wire [5:1] largerOperand_Exponent;
 wire [11:1] largerOperand_Mantissa;
 
 wire smallerOperand_Sign_Normalised;
+wire [5:1] smallerOperand_Exponent;
 wire [11:1] smallerOperand_Mantissa;
 wire [11:1] smallerOperand_Mantissa_Normalised;
 
@@ -61,10 +68,15 @@ assign largerOperand_Mantissa[11] = 1'b1;   // For Implicit 1
 
 assign smallerOperand_Sign_Normalised = ((smallerOperand) & in_Sign_1) | ((!smallerOperand) & in_Sign_2);
 
-wire largerOperand;
-assign largerOperand = !smallerOperand;
+Bit5MUX SmallerOperandExponentChooser (in_Exponent_1, in_Exponent_2, largerOperand, smallerOperand_Exponent);
+
 Bit10MUX SmallerOperandMantissaChooser (in_Mantissa_1, in_Mantissa_2, largerOperand, smallerOperand_Mantissa[10:1]);
 assign smallerOperand_Mantissa[11] = 1'b1;   // For Implicit 1
+
+// Now Check if Smaller Operand is 0 - mantissa (10 bits) and exponent all zeros
+assign SC_Operand_Zero = !(|smallerOperand_Exponent | |smallerOperand_Mantissa[10:1]);
+// Now Check if Larger Operand is all 1s - mantissa (10 bits) all 0s and exponent all ones
+assign SC_Operand_Infinity = (&smallerOperand_Exponent & !(|smallerOperand_Mantissa[10:1]));
 
 // Match the exponent of smaller operand with larger operand - i.e. right shift it by exp_diff times
 BarrelShifterRight SmallerExponentMatch (smallerOperand_Mantissa, Exponent_Diff, smallerOperand_Mantissa_Normalised);
@@ -113,9 +125,26 @@ wire Normalise_Exponent_Overflow;
 ExpSubtractor RenormaliseExp (largerOperand_Exponent_CarryAdjusted, norm_shift, finalexp_norm, SC_Exponent_UnderFlow);
 
 assign out_Sign = largerOperand_Sign;
+
+// Check Special Conditions and Assign Output Exponent
+wire [5:1] out_Exponent_Intermediate_1, out_Exponent_Intermediate_2;
+// If smaller operand was 0 directly assign output as the larger operand
+Bit5MUX outExponentChooser1 (finalexp_norm, largerOperand_Exponent, SC_Operand_Zero, out_Exponent_Intermediate_1);
+// If larger operand was Infinity directly assign output as all ones
+Bit5MUX outExponentChooser2 (out_Exponent_Intermediate_1, 5'b11111, SC_Operand_Infinity, out_Exponent_Intermediate_2);
 // If mantissa is all 0, then exponents should be set to 0
-Bit5MUX outExponentChooser (finalexp_norm, 5'b00000, SC_Mantissa_Zero, out_Exponent);
-assign out_Mantissa = addedValue_Normalised[10:1];
+Bit5MUX outExponentChooser3 (out_Exponent_Intermediate_2, 5'b00000, SC_Mantissa_Zero, out_Exponent);
+
+// Check Special Conditions and Assign Output Mantissa
+wire [10:1] out_Mantissa_Intermediate_1, out_Mantissa_Intermediate_2;
+// If smaller operand was 0 directly assign output as the larger operand
+Bit10MUX outMantissachooser1 (addedValue_Normalised[10:1], largerOperand_Mantissa[10:1], SC_Operand_Zero, out_Mantissa_Intermediate_1);
+// If larger operand was Infinity directly assign output as all ones
+Bit10MUX outMantissachooser2 (out_Mantissa_Intermediate_1, 10'b0000000000, SC_Operand_Infinity, out_Mantissa_Intermediate_2);
+assign out_Mantissa = out_Mantissa_Intermediate_2;
+
+// Check if Output Overflows
+assign SC_Output_OverFlow = &out_Exponent;
 
 // always @(*) begin
 //     $display("INP: %b = %b - %b", Exponent_Diff, in_Exponent_1, in_Exponent_2);
