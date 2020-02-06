@@ -83,7 +83,7 @@ Bit10MUX mantissachooser2 (out_Mantissa_Intermediate_1, 10'b1111111111, SC_Opera
 
 assign SC_Exponent_Underflow = exp_subbed[6] & (!SC_Operand_Zero & !SC_Operand_Infinity & !SC_Exponent_Overflow);
 
-always @(*)
-    $display("LOL: %b", prod_extended);
+// always @(*)
+//     $display("LOL: %b", prod_extended);
 
 endmodule

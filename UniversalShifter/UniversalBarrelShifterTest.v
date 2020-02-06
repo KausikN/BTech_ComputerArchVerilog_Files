@@ -11,7 +11,8 @@ wire [16:1] out;
 UniversalBarrelShifter ubs (A, Shift, ShiftChoice, out);
 
 initial begin
-    $monitor($time, ": A: %b (%d), Shift: %b (%d), out: %b (%d)", 
+    $monitor($time, ": ShiftChoice: %b, A: %b (%d), Shift: %b (%d), out: %b (%d)", 
+    ShiftChoice, 
     A, A, Shift, Shift, out, out
     );
 end

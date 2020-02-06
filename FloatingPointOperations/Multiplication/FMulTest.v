@@ -35,7 +35,7 @@ initial begin
 end
 
 initial begin
-    in_Sign_1 = 1'b1; in_Exponent_1 = 5'b10001; in_Mantissa_1 = 10'b1001001000;
+    in_Sign_1 = 1'b1; in_Exponent_1 = 5'b00000; in_Mantissa_1 = 10'b0000000000;
     in_Sign_2 = 1'b0; in_Exponent_2 = 5'b11010; in_Mantissa_2 = 10'b0101010000;
 end
 

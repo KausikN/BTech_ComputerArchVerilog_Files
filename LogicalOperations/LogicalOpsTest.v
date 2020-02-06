@@ -28,7 +28,7 @@ initial begin
 end
 
 initial begin
-    Operation = 3'b111;
+    Operation = 3'b001;
     A = 16'b1111111111111111; 
     B = 16'b0010010010010101;
 end
