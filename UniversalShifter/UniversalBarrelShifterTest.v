@@ -1,3 +1,5 @@
+// ShiftChoice: 0 - Right Shift, 1 - Left Shift
+
 `include "UniversalBarrelShifter.v"
 
 module test;
@@ -18,7 +20,7 @@ initial begin
 end
 
 initial begin
-    ShiftChoice = 1'b0;
+    ShiftChoice = 1'b1;
     Shift = 4'b0011;
     A = 16'b1011001001010010; 
 end

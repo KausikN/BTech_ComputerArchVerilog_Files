@@ -30,7 +30,7 @@ initial begin
     WriteAddress = 5'b00000;
     WriteValue = 16'b001001000110010;
 
-    #10 RegisterFile <= outRegisterFile; mode = 1'b1; WriteAddress = 5'b00001; WriteValue = 16'b0001001001100011;
+    #10 RegisterFile[32:1][16:1] <= outRegisterFile[32:1][16:1]; mode = 1'b1; WriteAddress = 5'b00001; WriteValue = 16'b0001001001100011;
     #10 RegisterFile <= outRegisterFile; mode = 1'b0; ReadAddress1 = 5'b00000; ReadAddress2 = 5'b00001;
     #10 RegisterFile <= outRegisterFile; mode = 1'b1; WriteAddress = 5'b00010; WriteValue = Sum;
 end
