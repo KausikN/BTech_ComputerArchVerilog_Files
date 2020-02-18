@@ -171,9 +171,9 @@ assign ReadValueTemp2 =  (ReadAddressDecoded2[1] ? (RegisterFile[1]) :
 //     //outRegisterFile <= mode ? (outRegisterFileTemp) : (RegisterFile);
 // end
 
-always @(*) begin
-    $display("%b, %b, %b - %b", RegisterFile[1], RegisterFile[2], RegisterFile[3], WriteAddressDecoded);
-end
+// always @(*) begin
+//     $display("%b : %b : %b, %b, %b - %b", mode, WriteValue, RegisterFile[1], RegisterFile[2], RegisterFile[3], WriteAddressDecoded);
+// end
 
 assign ReadValue1 = mode ? ReadValue1 : (ReadValueTemp1);
 assign ReadValue2 = mode ? ReadValue2 : (ReadValueTemp2);

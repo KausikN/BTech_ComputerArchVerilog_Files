@@ -17,24 +17,24 @@ wire Carry;
 // Adder16Bit addr (ReadValue1, ReadValue2, Sum, Carry);
 
 initial begin
-    $monitor($time, ": ReadValue1: %b (%d), ReadValue2: %b (%d)", 
-        ReadValue1, ReadValue1, 
-        ReadValue2, ReadValue2
+    $monitor($time, ": Read1: %b = %b (%d), Read2: %b = %b (%d)", 
+        ReadAddress1, ReadValue1, ReadValue1, 
+        ReadAddress2, ReadValue2, ReadValue2
     );
 end
 
 initial begin
-    mode = 1'b1;
     WriteAddress = 5'b00000;
     WriteValue = 16'b001001000110010;
+    mode = 1'b1;
     #10
     mode = 1'b0; ReadAddress1 = 5'b00000; ReadAddress2 = 5'b00001;
     #10
-    mode = 1'b1; WriteAddress = 5'b00001; WriteValue = 16'b0001001001100011;
+    WriteAddress = 5'b00001; WriteValue = 16'b0001001001100011; #1 mode = 1'b1;
     #10
     mode = 1'b0; ReadAddress1 = 5'b00000; ReadAddress2 = 5'b00001;
     #10
-    mode = 1'b1; WriteAddress = 5'b00010; WriteValue = 16'b1010000001101011;
+    WriteAddress = 5'b00010; WriteValue = 16'b1010000001101011; #1 mode = 1'b1;
     #10
     mode = 1'b0; ReadAddress1 = 5'b00001; ReadAddress2 = 5'b00010;
 end
