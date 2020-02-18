@@ -22,7 +22,11 @@ end
 initial begin
     ShiftChoice = 1'b1;
     Shift = 4'b0011;
-    A = 16'b1011001001010010; 
+    A = 16'b1011001001010010;
+    #10 
+    ShiftChoice = 1'b0;
+    Shift = 4'b0011;
+    A = 16'b1011001001010010;
 end
 
 endmodule
