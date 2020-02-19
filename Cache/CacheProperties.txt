@@ -1,0 +1,8 @@
+L1 - Separate Ins Data Cache	 (16 Bit)
+	- With Valid and Dirty Bit
+	Block Size = 8 Words
+	Word Size
+	- Data => Dual Port Memory - Read and Write in same cc - 32K or 64K
+	- Ins => Single Port Memory - 8K or 16K
+
+Main Memrory - 4x Cache Size

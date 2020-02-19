@@ -16,9 +16,18 @@ module L1Cache_64K_16K_8_16 (
 );
 
 // Instruction Cache - 8 16Bit Words in 1 Block, 16K, 128 Blocks 
-InstructionRegister_L1 ins ();
+InstructionRegister_L1 ins (
+    mode,  
+    ReadAddress1, ReadValue1,
+    reset
+    );
 
 // Data Cache - 8 16Bit Words in 1 Block, 64K, 512 Blocks 
-Data_L1 data ();
+Data_L1 data (
+    mode, 
+    WriteAddress, WriteValue, 
+    ReadAddress1, ReadValue1, 
+    reset
+    );
 
 endmodule
