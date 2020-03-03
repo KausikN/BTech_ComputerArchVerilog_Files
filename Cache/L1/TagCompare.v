@@ -11,4 +11,6 @@ output CompVal;
 
 assign CompVal = !(Tag1[1] ^ Tag2[1]) & !(Tag1[2] ^ Tag2[2]);
 
+
+
 endmodule

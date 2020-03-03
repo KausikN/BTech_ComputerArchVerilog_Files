@@ -4,10 +4,10 @@ module Data_L1 (
     WriteAddress_Full, WriteValue, 
     ReadAddress_Full, ReadValue, 
     WriteHit, ReadHit, 
-    reset
+    clk, write, read
 );
 
-input reset;
+input clk, write, read;
 
 reg [15:0] MainMemory [65535:0];
 
@@ -52,20 +52,22 @@ assign WriteAddress = WriteAddress_Full[14:1];
 assign ReadAddress = ReadAddress_Full[14:1];
 
 // Initially Validity and Dirty is 0 for all
+integer i;
 initial begin
-    // integer i = 0;
-    // while (i  2048) begin
-    //     ValidityBit[i] = 1'b0;
-    //     DirtyBit[i] = 1'b0;
-    //     i = i + 1;
-    // end
-    ValidityBit = 2048'b0;
-    DirtyBit = 2048'b0;
+    i = 0;
+    while (i < 2048) begin
+        ValidityBit[i] = 1'b0;
+        DirtyBit[i] = 1'b0;
+        BlockTags[i] = 2'b00;
+        i = i + 1;
+    end
+    // ValidityBit = 2048'b0;
+    // DirtyBit = 2048'b0;
 end
 
-// Write
 integer TempWriteAddress;
 integer TempReadAddress;
+// Write
 // Compare Tag
 wire WriteTagCheck;
 TagCompare tcw (WriteTag, BlockTags[WriteBlockIndex], WriteTagCheck);
@@ -79,13 +81,14 @@ TagCompare tcr (ReadTag, BlockTags[ReadBlockIndex], ReadTagCheck);
 assign ReadHit = (ReadTagCheck & ValidityBit[ReadBlockIndex]);
 
 always @(*) begin
-    $display("Debug: Write - %b -> %b - %b : %b @ %b", WriteValue, WriteAddress_Full, WriteHit, DirtyBit[WriteBlockIndex], DataCache[WriteBlockIndex]);
+    $display("Debug: Write - %b -> %b - H: %b : V: %b D: %b @ %b", WriteValue, WriteAddress_Full, WriteHit, ValidityBit[WriteBlockIndex], DirtyBit[WriteBlockIndex], DataCache[WriteBlockIndex]);
     $display("Debug: Read - %b -> %b - %b : %b", ReadValue, ReadAddress_Full, ReadHit, DataCache[ReadBlockIndex]);
 end
 
 // Write Hit or Miss
-always @(WriteHit) begin
-    if (WriteHit == 1'b1) begin // Hit
+// always @(WriteHit or ReadHit) begin
+always @(posedge clk) begin
+    if (WriteHit == 1'b1 && write == 1'b1) begin // Hit
         $display("Write Hit");
         
         if (WriteWordIndex == 3'b000)
@@ -104,14 +107,19 @@ always @(WriteHit) begin
             DataCache[WriteBlockIndex][6*16 + 15: 6*16] = WriteValue;
         else if (WriteWordIndex == 3'b111)
             DataCache[WriteBlockIndex][7*16 + 15: 7*16] = WriteValue;
-        // Set Dirty Bit
+        // Set Dirty Bit and Validity Bit
         DirtyBit[WriteBlockIndex] = 1'b1;
+        ValidityBit[WriteBlockIndex] = 1'b1;
     end
-    else if (WriteHit == 1'b0) begin // Miss
+    else if (WriteHit == 1'b0 && write == 1'b1) begin // Miss
         $display("Write Miss");
+
         TempWriteAddress[14:4] = WriteBlockIndex;
         TempWriteAddress[3:1] = 3'b000;
-        if (DirtyBit[WriteBlockIndex]) begin
+
+        // Write Back
+        if (DirtyBit[WriteBlockIndex] == 1'b1) begin
+            $display("Write Miss Write Back");
             TempWriteAddress[16:15] = BlockTags[WriteBlockIndex];
 
             // i = 0;
@@ -129,7 +137,7 @@ always @(WriteHit) begin
             MainMemory[TempWriteAddress + 6][15:0] = DataCache[WriteBlockIndex][16*6 + 15 : 16*6];
             MainMemory[TempWriteAddress + 7][15:0] = DataCache[WriteBlockIndex][16*7 + 15 : 16*7];
 
-
+            // Clear Dirty Bit
             DirtyBit[WriteBlockIndex] = 1'b0;
         end
         
@@ -166,14 +174,18 @@ always @(WriteHit) begin
             DataCache[WriteBlockIndex][6*16 + 15: 6*16] = WriteValue;
         else if (WriteWordIndex == 3'b111)
             DataCache[WriteBlockIndex][7*16 + 15: 7*16] = WriteValue;
-        // Set Dirty Bit
-        DirtyBit[WriteBlockIndex] = 1'b1;
-    end
-end
 
-// Read Hit or Miss
-always @(ReadHit) begin 
-    if (ReadHit == 1'b1) begin // Hit
+        $display("WriteMissDisp: DC block %d: %b", WriteBlockIndex, DataCache[WriteBlockIndex]);
+
+        // Set Dirty Bit and Validity Bit
+        DirtyBit[WriteBlockIndex] = 1'b1;
+        ValidityBit[WriteBlockIndex] = 1'b1;
+    end
+
+    $display("Interm: V: %b D: %b, RH: %b, WH: %b - %b = %b > %b", ValidityBit[ReadBlockIndex], DirtyBit[ReadBlockIndex], ReadHit, WriteHit, ReadTag, BlockTags[ReadBlockIndex], ReadTagCheck);
+
+    // Read
+    if (ReadHit == 1'b1 && read == 1'b1) begin // Hit
         $display("Read Hit");
         // Read
         if (ReadWordIndex == 3'b000)
@@ -193,8 +205,89 @@ always @(ReadHit) begin
         else if (ReadWordIndex == 3'b111)
             ReadValue = DataCache[ReadBlockIndex][7*16 + 15: 7*16];
     end
-    else if (ReadHit == 1'b0) begin // Miss
+    else if (ReadHit == 1'b0 && read == 1'b1) begin // Miss
         $display("Read Miss");
+        TempReadAddress = 0;
+        TempReadAddress[13:3] = ReadBlockIndex;
+        TempReadAddress[2:0] = 3'b000;
+
+        $display("ReadMissDisp: DC block %d: %b", ReadBlockIndex, DataCache[ReadBlockIndex]);
+
+        // Write Back
+        if (DirtyBit[ReadBlockIndex] == 1'b1) begin
+            $display("Read Miss Write Back");
+            TempReadAddress[15:14] = BlockTags[ReadBlockIndex];
+
+            MainMemory[TempReadAddress + 0][15:0] = DataCache[ReadBlockIndex][16*0 + 15 : 16*0];
+            MainMemory[TempReadAddress + 1][15:0] = DataCache[ReadBlockIndex][16*1 + 15 : 16*1];
+            MainMemory[TempReadAddress + 2][15:0] = DataCache[ReadBlockIndex][16*2 + 15 : 16*2];
+            MainMemory[TempReadAddress + 3][15:0] = DataCache[ReadBlockIndex][16*3 + 15 : 16*3];
+            MainMemory[TempReadAddress + 4][15:0] = DataCache[ReadBlockIndex][16*4 + 15 : 16*4];
+            MainMemory[TempReadAddress + 5][15:0] = DataCache[ReadBlockIndex][16*5 + 15 : 16*5];
+            MainMemory[TempReadAddress + 6][15:0] = DataCache[ReadBlockIndex][16*6 + 15 : 16*6];
+            MainMemory[TempReadAddress + 7][15:0] = DataCache[ReadBlockIndex][16*7 + 15 : 16*7];
+        end
+        //$display("ReadMissFinal1: DC block Temp: %b: %b", TempReadAddress, MainMemory[TempReadAddress]);
+        // Replace Block 
+        TempReadAddress[15:14] = ReadTag;
+        DataCache[ReadBlockIndex][16*0 + 15 : 16*0] = MainMemory[TempReadAddress + 0][15:0];
+        DataCache[ReadBlockIndex][16*1 + 15 : 16*1] = MainMemory[TempReadAddress + 1][15:0];
+        DataCache[ReadBlockIndex][16*2 + 15 : 16*2] = MainMemory[TempReadAddress + 2][15:0];
+        DataCache[ReadBlockIndex][16*3 + 15 : 16*3] = MainMemory[TempReadAddress + 3][15:0];
+        DataCache[ReadBlockIndex][16*4 + 15 : 16*4] = MainMemory[TempReadAddress + 4][15:0];
+        DataCache[ReadBlockIndex][16*5 + 15 : 16*5] = MainMemory[TempReadAddress + 5][15:0];
+        DataCache[ReadBlockIndex][16*6 + 15 : 16*6] = MainMemory[TempReadAddress + 6][15:0];
+        DataCache[ReadBlockIndex][16*7 + 15 : 16*7] = MainMemory[TempReadAddress + 7][15:0];
+        BlockTags[ReadBlockIndex] = ReadTag;
+        ValidityBit[ReadBlockIndex] = 1'b1;
+        DirtyBit[ReadBlockIndex] = 1'b0;
+
+        //$display("ReadMissFinal2: DC block %d + %b: %b", ReadBlockIndex, ReadWordIndex, DataCache[ReadBlockIndex]);
+
+        // Then Read
+        if (ReadWordIndex == 3'b000)
+            ReadValue = DataCache[ReadBlockIndex][0*16 + 15: 0*16];
+        else if (ReadWordIndex == 3'b001)
+            ReadValue = DataCache[ReadBlockIndex][1*16 + 15: 1*16];
+        else if (ReadWordIndex == 3'b010)
+            ReadValue = DataCache[ReadBlockIndex][2*16 + 15: 2*16];
+        else if (ReadWordIndex == 3'b011)
+            ReadValue = DataCache[ReadBlockIndex][3*16 + 15: 3*16];
+        else if (ReadWordIndex == 3'b100)
+            ReadValue = DataCache[ReadBlockIndex][4*16 + 15: 4*16];
+        else if (ReadWordIndex == 3'b101)
+            ReadValue = DataCache[ReadBlockIndex][5*16 + 15: 5*16];
+        else if (ReadWordIndex == 3'b110)
+            ReadValue = DataCache[ReadBlockIndex][6*16 + 15: 6*16];
+        else if (ReadWordIndex == 3'b111)
+            ReadValue = DataCache[ReadBlockIndex][7*16 + 15: 7*16];
+    end
+end
+/*
+// Read Hit or Miss
+always @(ReadHit) begin 
+    if (ReadHit == 1'b1) begin // Hit
+        //$display("Read Hit");
+        // Read
+        if (ReadWordIndex == 3'b000)
+            ReadValue = DataCache[ReadBlockIndex][0*16 + 15: 0*16];
+        else if (ReadWordIndex == 3'b001)
+            ReadValue = DataCache[ReadBlockIndex][1*16 + 15: 1*16];
+        else if (ReadWordIndex == 3'b010)
+            ReadValue = DataCache[ReadBlockIndex][2*16 + 15: 2*16];
+        else if (ReadWordIndex == 3'b011)
+            ReadValue = DataCache[ReadBlockIndex][3*16 + 15: 3*16];
+        else if (ReadWordIndex == 3'b100)
+            ReadValue = DataCache[ReadBlockIndex][4*16 + 15: 4*16];
+        else if (ReadWordIndex == 3'b101)
+            ReadValue = DataCache[ReadBlockIndex][5*16 + 15: 5*16];
+        else if (ReadWordIndex == 3'b110)
+            ReadValue = DataCache[ReadBlockIndex][6*16 + 15: 6*16];
+        else if (ReadWordIndex == 3'b111)
+            ReadValue = DataCache[ReadBlockIndex][7*16 + 15: 7*16];
+    end
+    else if (ReadHit == 1'b0) begin // Miss
+        //$display("Read Miss");
 
         TempReadAddress[14:4] = ReadBlockIndex;
         TempReadAddress[3:1] = 3'b000;
@@ -246,5 +339,5 @@ always @(ReadHit) begin
             ReadValue = DataCache[ReadBlockIndex][7*16 + 15: 7*16];
     end
 end
-
+*/
 endmodule
