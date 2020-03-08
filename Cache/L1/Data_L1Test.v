@@ -37,7 +37,7 @@ initial begin
     #100 WriteAddress_Full = 16'd0; WriteValue = 16'd31; ReadAddress_Full = 16'd0;
     #100 WriteAddress_Full = 16'd1; WriteValue = 16'd42; ReadAddress_Full = 16'd0;
     #100 WriteAddress_Full = 16'd2; WriteValue = 16'd51; ReadAddress_Full = 16'd1;
-    #100 WriteAddress_Full = 16'd3; WriteValue = 16'd62; ReadAddress_Full = 16'd2;
+    #100 WriteAddress_Full = 16'd8; WriteValue = 16'd62; ReadAddress_Full = 16'd2;
     #1000 $finish;
 end
 

@@ -35,8 +35,8 @@ wire [2:1] ReadTag;
 reg [2047:0] ValidityBit;
 reg [2047:0] DirtyBit;
 
-output ReadHit;
-output WriteHit;
+output reg ReadHit;
+output reg WriteHit;
 
 // Assign Tag and Indices
 assign WriteTag = WriteAddress_Full[16:15];
@@ -58,7 +58,7 @@ initial begin
     while (i < 2048) begin
         ValidityBit[i] = 1'b0;
         DirtyBit[i] = 1'b0;
-        BlockTags[i] = 2'b00;
+        BlockTags[i] = 2'b01;
         i = i + 1;
     end
     // ValidityBit = 2048'b0;
@@ -67,27 +67,47 @@ end
 
 integer TempWriteAddress;
 integer TempReadAddress;
+
 // Write
 // Compare Tag
-wire WriteTagCheck;
-TagCompare tcw (WriteTag, BlockTags[WriteBlockIndex], WriteTagCheck);
-assign WriteHit = (WriteTagCheck & ValidityBit[WriteBlockIndex]);
+reg WriteTagCheck;
+//TagCompare tcw (WriteTag, BlockTags[WriteBlockIndex], WriteTagCheck);
+//assign WriteHit = (WriteTagCheck & ValidityBit[WriteBlockIndex]);
 
 
 // Read
 // Compare Tag
-wire ReadTagCheck;
-TagCompare tcr (ReadTag, BlockTags[ReadBlockIndex], ReadTagCheck);
-assign ReadHit = (ReadTagCheck & ValidityBit[ReadBlockIndex]);
+reg ReadTagCheck;
+//TagCompare tcr (ReadTag, BlockTags[ReadBlockIndex], ReadTagCheck);
+//assign ReadHit = (ReadTagCheck & ValidityBit[ReadBlockIndex]);
 
+// Hit Checks
+/*
 always @(*) begin
-    $display("Debug: Write - %b -> %b - H: %b : V: %b D: %b @ %b", WriteValue, WriteAddress_Full, WriteHit, ValidityBit[WriteBlockIndex], DirtyBit[WriteBlockIndex], DataCache[WriteBlockIndex]);
-    $display("Debug: Read - %b -> %b - %b : %b", ReadValue, ReadAddress_Full, ReadHit, DataCache[ReadBlockIndex]);
+    WriteTagCheck = !(WriteTag[1] ^ BlockTags[WriteBlockIndex][1]) & !(WriteTag[2] ^ BlockTags[WriteBlockIndex][2]);
+    ReadTagCheck = !(ReadTag[1] ^ BlockTags[ReadBlockIndex][1]) & !(ReadTag[2] ^ BlockTags[ReadBlockIndex][2]);
+    WriteHit <= (WriteTagCheck & ValidityBit[WriteBlockIndex]);
+    ReadHit <= (ReadTagCheck & ValidityBit[ReadBlockIndex]);
 end
-
+*/
+/*
+always @(*) begin
+    $display("Debug: WH: %b RH: %b", WriteHit, ReadHit);
+    $display("Debug: Write V: %b D: %b", ValidityBit[WriteBlockIndex], DirtyBit[WriteBlockIndex]);
+    $display("Debug: Read V: %b D: %b", ValidityBit[ReadBlockIndex], DirtyBit[ReadBlockIndex]);
+    $display("Debug: Write - %b -> %b : %b", WriteValue, WriteAddress_Full, DataCache[WriteBlockIndex]);
+    $display("Debug: Read - %b -> %b : %b\n", ReadValue, ReadAddress_Full, DataCache[ReadBlockIndex]);
+end
+*/
 // Write Hit or Miss
 // always @(WriteHit or ReadHit) begin
-always @(posedge clk) begin
+always @(clk) begin
+    WriteTagCheck = !(WriteTag[1] ^ BlockTags[WriteBlockIndex][1]) & !(WriteTag[2] ^ BlockTags[WriteBlockIndex][2]);
+    ReadTagCheck = !(ReadTag[1] ^ BlockTags[ReadBlockIndex][1]) & !(ReadTag[2] ^ BlockTags[ReadBlockIndex][2]);
+    WriteHit = (WriteTagCheck & ValidityBit[WriteBlockIndex]);
+    ReadHit = (ReadTagCheck & ValidityBit[ReadBlockIndex]);
+
+
     if (WriteHit == 1'b1 && write == 1'b1) begin // Hit
         $display("Write Hit");
         
@@ -175,14 +195,18 @@ always @(posedge clk) begin
         else if (WriteWordIndex == 3'b111)
             DataCache[WriteBlockIndex][7*16 + 15: 7*16] = WriteValue;
 
-        $display("WriteMissDisp: DC block %d: %b", WriteBlockIndex, DataCache[WriteBlockIndex]);
+        //$display("WriteMissDisp: DC block %d: %b", WriteBlockIndex, DataCache[WriteBlockIndex]);
 
         // Set Dirty Bit and Validity Bit
         DirtyBit[WriteBlockIndex] = 1'b1;
         ValidityBit[WriteBlockIndex] = 1'b1;
+        BlockTags[WriteBlockIndex] = WriteTag;
     end
 
-    $display("Interm: V: %b D: %b, RH: %b, WH: %b - %b = %b > %b", ValidityBit[ReadBlockIndex], DirtyBit[ReadBlockIndex], ReadHit, WriteHit, ReadTag, BlockTags[ReadBlockIndex], ReadTagCheck);
+    ReadTagCheck = !(ReadTag[1] ^ BlockTags[ReadBlockIndex][1]) & !(ReadTag[2] ^ BlockTags[ReadBlockIndex][2]);
+    ReadHit = (ReadTagCheck & ValidityBit[ReadBlockIndex]);
+    //$display("Interm: RA: %b\nWA: %b", ReadBlockIndex, WriteBlockIndex);
+    //$display("Interm: V: %b D: %b, RH: %b, WH: %b - %b = %b -> %b", ValidityBit[ReadBlockIndex], DirtyBit[ReadBlockIndex], ReadHit, WriteHit, ReadTag, BlockTags[ReadBlockIndex], ReadTagCheck);
 
     // Read
     if (ReadHit == 1'b1 && read == 1'b1) begin // Hit
@@ -211,7 +235,7 @@ always @(posedge clk) begin
         TempReadAddress[13:3] = ReadBlockIndex;
         TempReadAddress[2:0] = 3'b000;
 
-        $display("ReadMissDisp: DC block %d: %b", ReadBlockIndex, DataCache[ReadBlockIndex]);
+        //$display("ReadMissDisp: DC block %d: %b", ReadBlockIndex, DataCache[ReadBlockIndex]);
 
         // Write Back
         if (DirtyBit[ReadBlockIndex] == 1'b1) begin
@@ -238,6 +262,7 @@ always @(posedge clk) begin
         DataCache[ReadBlockIndex][16*5 + 15 : 16*5] = MainMemory[TempReadAddress + 5][15:0];
         DataCache[ReadBlockIndex][16*6 + 15 : 16*6] = MainMemory[TempReadAddress + 6][15:0];
         DataCache[ReadBlockIndex][16*7 + 15 : 16*7] = MainMemory[TempReadAddress + 7][15:0];
+
         BlockTags[ReadBlockIndex] = ReadTag;
         ValidityBit[ReadBlockIndex] = 1'b1;
         DirtyBit[ReadBlockIndex] = 1'b0;
