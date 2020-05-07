@@ -65,7 +65,7 @@ initial begin
     // DirtyBit = 2048'b0;
 end
 
-integer TempWriteAddress;
+reg [16:1] TempWriteAddress;
 integer TempReadAddress;
 
 // Write
@@ -119,7 +119,7 @@ always @(clk) begin
             InstructionCache[WriteBlockIndex][2*16 + 15: 2*16] = WriteValue;
         else if (WriteWordIndex == 3'b011)
             InstructionCache[WriteBlockIndex][3*16 + 15: 3*16] = WriteValue;
-        else if (WriteWordIndex == 3'b10)
+        else if (WriteWordIndex == 3'b100)
             InstructionCache[WriteBlockIndex][4*16 + 15: 4*16] = WriteValue;
         else if (WriteWordIndex == 3'b101)
             InstructionCache[WriteBlockIndex][5*16 + 15: 5*16] = WriteValue;

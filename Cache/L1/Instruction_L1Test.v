@@ -38,9 +38,10 @@ initial begin
     #100 mode = 1'b0; ReadAddress_Full = 16'd1;
     #100 mode = 1'b1; WriteAddress_Full = 16'd8; WriteValue = 16'd62;
     #100 mode = 1'b0; ReadAddress_Full = 16'd8;
+
     #1000 $finish;
 end
 
-always #100 clk = !clk; 
+always #50 clk = !clk; 
 
 endmodule
