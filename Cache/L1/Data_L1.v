@@ -119,7 +119,7 @@ always @(clk) begin
             DataCache[WriteBlockIndex][2*16 + 15: 2*16] = WriteValue;
         else if (WriteWordIndex == 3'b011)
             DataCache[WriteBlockIndex][3*16 + 15: 3*16] = WriteValue;
-        else if (WriteWordIndex == 3'b10)
+        else if (WriteWordIndex == 3'b100)
             DataCache[WriteBlockIndex][4*16 + 15: 4*16] = WriteValue;
         else if (WriteWordIndex == 3'b101)
             DataCache[WriteBlockIndex][5*16 + 15: 5*16] = WriteValue;
@@ -186,7 +186,7 @@ always @(clk) begin
             DataCache[WriteBlockIndex][2*16 + 15: 2*16] = WriteValue;
         else if (WriteWordIndex == 3'b011)
             DataCache[WriteBlockIndex][3*16 + 15: 3*16] = WriteValue;
-        else if (WriteWordIndex == 3'b10)
+        else if (WriteWordIndex == 3'b100)
             DataCache[WriteBlockIndex][4*16 + 15: 4*16] = WriteValue;
         else if (WriteWordIndex == 3'b101)
             DataCache[WriteBlockIndex][5*16 + 15: 5*16] = WriteValue;

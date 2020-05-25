@@ -109,7 +109,7 @@ always @(clk) begin
 
 
     if (WriteHit == 1'b1 && mode == 1'b1) begin // Hit
-        $display("Write Hit");
+        //$display("Write Hit");
         
         if (WriteWordIndex == 3'b000)
             InstructionCache[WriteBlockIndex][0*16 + 15: 0*16] = WriteValue;
@@ -132,14 +132,14 @@ always @(clk) begin
         ValidityBit[WriteBlockIndex] = 1'b1;
     end
     else if (WriteHit == 1'b0 && mode == 1'b1) begin // Miss
-        $display("Write Miss");
+        //$display("Write Miss");
 
         TempWriteAddress[14:4] = WriteBlockIndex;
         TempWriteAddress[3:1] = 3'b000;
 
         // Write Back
         if (DirtyBit[WriteBlockIndex] == 1'b1) begin
-            $display("Write Miss Write Back");
+            //$display("Write Miss Write Back");
             TempWriteAddress[16:15] = BlockTags[WriteBlockIndex];
 
             // i = 0;
@@ -186,7 +186,7 @@ always @(clk) begin
             InstructionCache[WriteBlockIndex][2*16 + 15: 2*16] = WriteValue;
         else if (WriteWordIndex == 3'b011)
             InstructionCache[WriteBlockIndex][3*16 + 15: 3*16] = WriteValue;
-        else if (WriteWordIndex == 3'b10)
+        else if (WriteWordIndex == 3'b100)
             InstructionCache[WriteBlockIndex][4*16 + 15: 4*16] = WriteValue;
         else if (WriteWordIndex == 3'b101)
             InstructionCache[WriteBlockIndex][5*16 + 15: 5*16] = WriteValue;
@@ -210,7 +210,7 @@ always @(clk) begin
 
     // Read
     if (ReadHit == 1'b1 && mode == 1'b0) begin // Hit
-        $display("Read Hit");
+        //$display("Read Hit");
         // Read
         if (ReadWordIndex == 3'b000)
             ReadValue = InstructionCache[ReadBlockIndex][0*16 + 15: 0*16];
@@ -230,7 +230,7 @@ always @(clk) begin
             ReadValue = InstructionCache[ReadBlockIndex][7*16 + 15: 7*16];
     end
     else if (ReadHit == 1'b0 && mode == 1'b0) begin // Miss
-        $display("Read Miss");
+        //$display("Read Miss");
         TempReadAddress = 0;
         TempReadAddress[13:3] = ReadBlockIndex;
         TempReadAddress[2:0] = 3'b000;
@@ -239,7 +239,7 @@ always @(clk) begin
 
         // Write Back
         if (DirtyBit[ReadBlockIndex] == 1'b1) begin
-            $display("Read Miss Write Back");
+            //$display("Read Miss Write Back");
             TempReadAddress[15:14] = BlockTags[ReadBlockIndex];
 
             MainMemory[TempReadAddress + 0][15:0] = InstructionCache[ReadBlockIndex][16*0 + 15 : 16*0];
