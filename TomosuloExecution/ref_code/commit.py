@@ -1,20 +1,24 @@
-# Qing 
-# 29th may 2017
+'''
+Commit Functions
+'''
+
 '''
 1. commit ROB_buffer
 2. fetch header into ROB_buffer
 '''
 
-# function: print ROB entry 
+# Main Functions
+# Print ROB entry
 def print_ROB(entry, instructions):
     item = instructions[entry.PC].ljust(30)
-    item += str(entry.issue).ljust(15) 
-    item += str(entry.exe).ljust(15) 
+    item += str(entry.issue).ljust(15)
+    item += str(entry.exe).ljust(15)
     item += str(entry.mem).ljust(15)
     item += str(entry.cdb).ljust(15)
     item += str(entry.commit)
     print(item)
-# function: modify architectual reg
+
+# Modify architectual reg
 def modify_arch_reg(entry, reg_int, reg_fp):
     if entry.dest_tag[0] == 'F':
         reg_fp[int(entry.dest_tag[1:])] = entry.value
@@ -23,7 +27,7 @@ def modify_arch_reg(entry, reg_int, reg_fp):
     else:
         pass
 
-# function: commit
+# Commit Instruction
 def commit(ROB, reg_int, reg_fp, cycle, instructions):
     if len(ROB)>0:
         if instructions[ROB[0].PC].split(' ')[0]=='Bne':

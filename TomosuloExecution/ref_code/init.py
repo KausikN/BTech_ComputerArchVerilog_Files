@@ -1,20 +1,23 @@
-# Qing 
-# 21st May 2017 
+'''
+Initialisation Fucntions
+'''
 
+# Imports
 from collections import namedtuple
 
-'''define data types'''
-# reservation station 
+# Main Functions
+# Define Datatypes
+# Reservation Station
 def rs_entry():
     rs_entry = namedtuple('rs_entry', 'busy, op, tag_1st, value_1st, valid_1st, tag_2nd, value_2nd, valid_2nd, dest_tag')
     temp = rs_entry
-    return temp 
-# functional unit 
+    return temp
+# Functional Unit
 def fu_entry():
     fu_entry = namedtuple('fu_entry', 'cycle, op, value1, value2, dest_tag')
     temp = fu_entry
     return temp
-# function result 
+# Functional Result
 def fu_result():
     fu_result = namedtuple('fu_result', 'value, dest_tag')
     temp = fu_result
@@ -39,7 +42,7 @@ def cdb():
     cdb = namedtuple('cdb', 'valid, value, dest_tag')
     temp = cdb
     return temp
-# ROB_entry 
+# ROB_entry
 def ROB_entry():
     ROB_entry = namedtuple('ROB_entry', 'ROB_tag, PC, value, dest_tag, issue, exe, mem, cdb, commit')
     temp = ROB_entry
@@ -49,17 +52,17 @@ def ROB_entry():
     temp.cdb = []
     temp.commit =[]
     return temp
-# PC 
+# PC
 def PC():
     PC = namedtuple('PC', 'PC, valid')
     temp = PC
     return temp
-# function: read instructions
+# Function: read instructions
 def read_instruction(codefile):
     with open(codefile) as f:
             instructions = f.read().splitlines()
     return instructions
-# function: build rs
+# Function: build rs
 def build_rs(num):
     rs = []
     for _ in range(num):
@@ -67,4 +70,3 @@ def build_rs(num):
         temp.busy = 0
         rs.extend([temp])
     return rs
-

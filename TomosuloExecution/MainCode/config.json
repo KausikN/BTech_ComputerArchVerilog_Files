@@ -1,0 +1,152 @@
+{
+    "n_registers": 16, 
+    "register_init_values": {
+        "1": 12, 
+        "2": 32
+    }, 
+
+    "n_bits_address": 8, 
+    "memory_init_values": {
+        "4": 3.0, 
+        "8": 2.0, 
+        "12": 1.0, 
+        "24": 6.0, 
+        "28": 5.0, 
+        "32": 4.0
+    }, 
+
+    "operations": [
+        {
+            "bin": "0000",
+            "name": "ADD", 
+            "rs_type": "adder"
+        }, 
+
+        {
+            "bin": "0001",
+            "name": "ADC", 
+            "rs_type": "adder"
+        }, 
+
+        {
+            "bin": "0010",
+            "name": "SUB", 
+            "rs_type": "adder"
+        }, 
+
+        {
+            "bin": "0011",
+            "name": "SBB", 
+            "rs_type": "adder"
+        }, 
+
+        {
+            "bin": "0100",
+            "name": "MUL", 
+            "rs_type": "mul"
+        }, 
+
+        {
+            "bin": "0101",
+            "name": "FADD", 
+            "rs_type": "fadder"
+        }, 
+
+        {
+            "bin": "0110",
+            "name": "FSUB", 
+            "rs_type": "fadder"
+        }, 
+
+        {
+            "bin": "0110",
+            "name": "FMUL", 
+            "rs_type": "fmul"
+        }, 
+
+        {
+            "bin": "1000",
+            "name": "HLT", 
+            "rs_type": "halt"
+        }, 
+
+        {
+            "bin": "1001",
+            "name": "CMP", 
+            "rs_type": "logical"
+        }, 
+
+        {
+            "bin": "1010",
+            "name": "XOR", 
+            "rs_type": "logical"
+        }, 
+
+        {
+            "bin": "1011",
+            "name": "NAND", 
+            "rs_type": "logical"
+        }, 
+
+        {
+            "bin": "1100",
+            "name": "SHR", 
+            "rs_type": "shifter"
+        }, 
+
+        {
+            "bin": "1101",
+            "name": "LHR", 
+            "rs_type": "shifter"
+        }
+
+    ], 
+
+    "rs_fu": [
+        {
+            "rs_type": "adder", 
+            "rs_size": 4, 
+            "fu_time": 6
+        }, 
+
+        {
+            "rs_type": "mul", 
+            "rs_size": 2, 
+            "fu_time": 11
+        }, 
+
+        {
+            "rs_type": "fadder", 
+            "rs_size": 2, 
+            "fu_time": 21
+        }, 
+
+        {
+            "rs_type": "fmul", 
+            "rs_size": 2, 
+            "fu_time": 24
+        }, 
+
+        {
+            "rs_type": "logical", 
+            "rs_size": 4, 
+            "fu_time": 1
+        }, 
+
+        {
+            "rs_type": "shifter", 
+            "rs_size": 2, 
+            "fu_time": 4
+        }
+    ], 
+
+    "load_store": {
+        "load_bin": "1111", 
+        "store_bin": "1110", 
+        "queue_size": 5, 
+        "time_exe": 2, 
+        "time_mem": 5
+    }, 
+
+    "ROB_size": 64
+}

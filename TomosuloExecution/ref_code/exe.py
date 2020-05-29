@@ -1,5 +1,6 @@
-# Qing 
-# 24th May 2017
+'''
+Execution Functions
+'''
 
 ''' 
 1. calculate valid instructions
@@ -9,9 +10,12 @@
     -- remove ALU instructions from rs
     -- don't remove ld/sd instructions
 '''
+
+# Imports
 from init import fu_entry, fu_result
 
-# function: check rs and return valid instruction index
+# Main Functions
+# Check rs and return valid instruction index
 def check_valid_ins_in_rs(rs):
     index = -1
     if len(rs)!=0:
@@ -21,7 +25,7 @@ def check_valid_ins_in_rs(rs):
                 break
     return index
 
-# function: check ld_sd_queue and return valid instruction index
+# Check ld_sd_queue and return valid instruction index
 def check_valid_ins_in_ldsd(ldsd):
     index = -1
     if len(ldsd)!=0:
@@ -31,7 +35,7 @@ def check_valid_ins_in_ldsd(ldsd):
                 break
     return index
 
-# function: add entry into fu 
+# Add entry into fu
 def add_entry_into_fu(fu, ins_in_rs):
     fu[-1].cycle = 0
     fu[-1].op = ins_in_rs.op
@@ -39,19 +43,19 @@ def add_entry_into_fu(fu, ins_in_rs):
     fu[-1].value2 = ins_in_rs.value_2nd
     fu[-1].dest_tag = ins_in_rs.dest_tag
 
-# function: find ROB entry by tag
+# Find ROB entry by tag
 def find_ROB_entry(ROB, tag):
     for index in range(len(ROB)):
         if ROB[index].ROB_tag == tag:
             break
     return index
 
-# function: functional units execution 
+# Functional units execution
 def fu_exe(fu, fu_results, ROB, time_fu, cycle, PC):
     if len(fu)!=0:
         for element in fu:
             element.cycle += 1
-        # write starting cycle 
+        # write starting cycle
         if fu[-1].cycle == 1:
             index = find_ROB_entry(ROB, fu[-1].dest_tag)
             ROB[index].exe.append(cycle)
@@ -80,14 +84,14 @@ def fu_exe(fu, fu_results, ROB, time_fu, cycle, PC):
                     PC.valid = 1
             else:
                 pass
-            # remove from fu 
+            # remove from fu
             fu.popleft()
 
-# function: ld_sd_execution 
+# ld_sd_execution
 def ld_sd_execution(ld_sd_exe, time_ld_sd_exe, ld_sd_queue, ROB, cycle):
     if ld_sd_exe.busy == 1:
         # write down starting cycle
-        if ld_sd_exe.cycle == 0:            
+        if ld_sd_exe.cycle == 0:
             for element in ld_sd_queue:
                 if element.ld_sd_tag == ld_sd_exe.dest_tag:
                     break
@@ -108,7 +112,7 @@ def ld_sd_execution(ld_sd_exe, time_ld_sd_exe, ld_sd_queue, ROB, cycle):
             ROB[index].exe.append(cycle)
             ld_sd_exe.busy = 0
 
-# function: execution
+# Execute Instruction
 def exe(fu_int_adder, time_fu_int_adder,
         fu_fp_adder, time_fu_fp_adder,
         fu_fp_multi, time_fu_fp_multi, results_buffer,
@@ -117,13 +121,13 @@ def exe(fu_int_adder, time_fu_int_adder,
         cycle, ROB, PC):
     '''execution in fu and ld_sd address calculation'''
     ld_sd_execution(ld_sd_exe, time_ld_sd_exe, ld_sd_queue, ROB, cycle) 
-    # functional units 
+    # functional units
     fu_exe(fu_int_adder, results_buffer, ROB, time_fu_int_adder, cycle, PC)
     fu_exe(fu_fp_adder, results_buffer, ROB, time_fu_fp_adder, cycle, PC)
     fu_exe(fu_fp_multi, results_buffer, ROB, time_fu_fp_multi, cycle, PC)
     '''fetch instructions from rs and ld_sd_queue'''
     # from ld_sd_queue
-    # check valid ins in ld_sd_queue 
+    # check valid ins in ld_sd_queue
     index = check_valid_ins_in_ldsd(ld_sd_queue)
     # put ins into ld_sd_exe
     if (index>=0)&(ld_sd_exe.busy==0):
@@ -134,9 +138,9 @@ def exe(fu_int_adder, time_fu_int_adder,
         ld_sd_exe.dest_tag = ld_sd_queue[index].ld_sd_tag
         if ROB[find_ROB_entry(ROB, ld_sd_queue[index].dest_tag)].issue[0] < cycle:
             ld_sd_execution(ld_sd_exe, time_ld_sd_exe, ld_sd_queue, ROB, cycle)
-    # from rs 
+    # from rs
     # int_adder
-    # fetch valid instruction 
+    # fetch valid instruction
     if check_valid_ins_in_rs(rs_int_adder)>=0:
         index = check_valid_ins_in_rs(rs_int_adder)
         fu_int_adder.append(fu_entry())
@@ -144,7 +148,7 @@ def exe(fu_int_adder, time_fu_int_adder,
         # check if it's a waiting instruction
         if ROB[find_ROB_entry(ROB, rs_int_adder[index].dest_tag)].issue[0] < cycle:
             fu_exe(fu_int_adder, results_buffer, ROB, time_fu_int_adder, cycle, PC)
-        # remove ins from rs 
+        # remove ins from rs
         rs_int_adder[index].busy = 0
     # fp_adder
     if check_valid_ins_in_rs(rs_fp_adder)>=0:
@@ -153,7 +157,7 @@ def exe(fu_int_adder, time_fu_int_adder,
         add_entry_into_fu(fu_fp_adder, rs_fp_adder[index])
         if ROB[find_ROB_entry(ROB, rs_fp_adder[index].dest_tag)].issue[0] < cycle:
             fu_exe(fu_fp_adder, results_buffer, ROB, time_fu_fp_adder, cycle, PC)
-        # remove ins from rs 
+        # remove ins from rs
         rs_fp_adder[index].busy = 0
     # fp_multi
     if check_valid_ins_in_rs(rs_fp_multi)>=0:
@@ -162,6 +166,5 @@ def exe(fu_int_adder, time_fu_int_adder,
         add_entry_into_fu(fu_fp_multi, rs_fp_multi[index])
         if ROB[find_ROB_entry(ROB, rs_fp_multi[index].dest_tag)].issue[0] < cycle:
             fu_exe(fu_fp_multi, results_buffer, ROB, time_fu_fp_multi, cycle, PC)
-        # remove ins from rs 
+        # remove ins from rs
         rs_fp_multi[index].busy = 0
-

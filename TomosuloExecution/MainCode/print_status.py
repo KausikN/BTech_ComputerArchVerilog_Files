@@ -1,7 +1,9 @@
-# Qing 
-# 21st May 2017
+'''
+Printing Status of Components
+'''
 
-# function: print RS/ROB status
+# Main Code
+# Print RS/ROB status
 def ps(unit):
     if(len(unit)==0):
         print('empty!')
@@ -13,7 +15,7 @@ def ps(unit):
             for field in fields_list:
                 print(field+': ', str(getattr(unit_item, field)))
 
-# function: print single namedtuple
+# Print single namedtuple
 def pss(snt):
     fields_list = snt._fields
     for field in fields_list:
